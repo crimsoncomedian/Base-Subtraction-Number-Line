@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Base Subtraction Number Line</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#18253a;background:#f5f7fb;--g:#16825a;--o:#d9801a;--b:#3f7fd6;--p:#8a55c7}
+*{box-sizing:border-box}body{margin:0;padding:20px}.app{max-width:680px;margin:auto}
+h1{font-size:clamp(22px,4vw,30px);margin:0 0 10px;text-align:center}
+.card{background:#fff;border:1px solid #d9e1eb;border-radius:16px;padding:22px 18px;margin:12px 0;box-shadow:0 2px 8px #152b4310}
+.badge{display:block;width:max-content;margin:0 auto 10px;padding:6px 16px;border-radius:999px;background:#eeeafe;color:#5144c6;font-weight:800;font-size:18px}
+.prob{display:flex;align-items:center;justify-content:center;gap:16px;font-size:clamp(44px,12vw,72px);font-weight:800;flex-wrap:wrap}
+.prob .op{color:#5e6d81}
+.prob input{width:2.2em;height:1.2em;font-size:inherit;font-weight:800;text-align:center;border:4px solid #5144c6;border-radius:14px;font-family:inherit;background:#fff;padding:0}
+.prob input:focus{outline:4px solid #b6aef5;outline-offset:2px}
+.prob input:disabled{background:#f5f7fb;border-color:#c8d3e2}
+.btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.btn{border:1px solid #5144c6;border-radius:12px;background:#5144c6;color:#fff;padding:13px 22px;font-size:18px;font-weight:700;cursor:pointer}
+.btn.alt{background:#fff;color:#5144c6}
+.btn[hidden]{display:none}
+.msg{text-align:center;min-height:30px;margin-top:14px;font-weight:700;font-size:18px;color:#bb3d3d}
+.msg.good{color:#18845a;font-size:22px}
+.shake{animation:wig .4s}@keyframes wig{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+/* number line model */
+.model{margin-top:22px;border-top:2px dashed #d5dce8;padding-top:14px}
+.nlwrap{overflow-x:auto;padding-bottom:6px}
+.nl{display:block;margin:0 auto;height:auto}
+.nl text{font-family:inherit;font-weight:800}
+.nl .tick{stroke:#18253a;stroke-width:3}
+.nl .axis{stroke:#18253a;stroke-width:4;stroke-linecap:round}
+.nl .lbl{fill:#18253a;font-size:22px;text-anchor:middle}
+.nl .lbl.st{fill:var(--b);font-size:26px}
+.nl .arc{fill:none;stroke:var(--p);stroke-width:4;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw .55s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.nl .head{fill:var(--p);opacity:0;animation:fadein .2s ease-out forwards}
+.nl .cnt{fill:var(--p);font-size:22px;text-anchor:middle;opacity:0;animation:fadein .3s ease-out forwards}
+@keyframes fadein{to{opacity:1}}
+.nl .startdot{fill:var(--b);opacity:0;animation:fadein .4s ease-out forwards}
+.nl .ring{fill:none;stroke:var(--g);stroke-width:5;opacity:0;transform-box:fill-box;transform-origin:center;animation:ringIn .5s ease-out forwards}
+@keyframes ringIn{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}
+.nl .endlbl{fill:var(--g);font-size:26px;text-anchor:middle;opacity:0;animation:fadein .4s ease-out forwards}
+.nl .axisg{opacity:0;animation:fadein .6s ease-out forwards}
+.nlnote{text-align:center;color:#5e6d81;font-weight:700;margin-top:4px;font-size:16px}
+</style>
+</head>
+<body><main class="app">
+<h1>Number Line: Subtraction Facts in Other Bases</h1>
+<section class="card">
+ <span class="badge" id="badge"></span>
+ <div class="prob"><span id="a"></span><span class="op">&minus;</span><span id="c"></span><span class="op">=</span><input id="ans" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Answer"></div>
+ <div class="msg" id="msg" role="status" aria-live="polite"></div>
+ <div class="btns"><button class="btn" id="check" type="button">Check</button><button class="btn alt" id="show" type="button">Show me</button><button class="btn" id="next" type="button" hidden>Next &#8594;</button></div>
+ <div class="model" id="model" hidden></div>
+</section>
+</main>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+let base=5,a=7,c=4,ans=3,total=7,mode='ask',last='';
+const words=['','','two','three','four','five','six','seven','eight','nine'];
+function newProblem(){
+ let b,x,y,sub,key;
+ do{b=2+Math.floor(Math.random()*8);const wantCarry=Math.random()<.65;let tries=0;
+  do{x=1+Math.floor(Math.random()*(b-1));y=1+Math.floor(Math.random()*(b-1));tries++;}while(wantCarry&&x+y<b&&tries<30);
+  sub=Math.random()<.5?x:y;key=b+':'+(x+y)+':'+sub;}while(key===last);
+ last=key;base=b;total=x+y;sub=sub;a=total;c=sub;ans=total-sub;mode='ask';
+ $('badge').textContent='base '+base;$('a').textContent=total.toString(base);$('c').textContent=sub.toString(base);
+ const inp=$('ans');inp.value='';inp.disabled=false;$('msg').textContent='';$('msg').className='msg';
+ $('check').hidden=false;$('show').hidden=false;$('next').hidden=true;$('model').hidden=true;$('model').innerHTML='';
+ inp.focus();
+}
+const expected=()=>ans.toString(base);
+function check(){
+ if(mode!=='ask')return;
+ const inp=$('ans'),v=inp.value.trim();if(v==='')return;
+ const bad=[...v].some(ch=>ch<'0'||ch>'9'||+ch>=base);
+ if(bad){inp.value='';shake(inp);setMsg(`In base ${base}, only the digits 0 to ${base-1} are used.`);return;}
+ if(v===expected()){mode='right';inp.disabled=true;$('msg').className='msg good';$('msg').textContent='✓ Great!';$('check').hidden=true;$('show').hidden=true;$('next').hidden=false;$('next').focus();return;}
+ inp.value='';shake(inp);setMsg('Not quite. Try again, or tap Show me.');
+}
+function setMsg(t){$('msg').className='msg';$('msg').textContent=t;}
+function shake(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');}
+function show(){
+ if(mode!=='ask')return;
+ mode='show';const s=expected(),inp=$('ans'),A=a,Cc=c,R=ans;
+ inp.value=s;inp.disabled=true;setMsg('');
+ $('check').hidden=true;$('show').hidden=true;$('next').hidden=false;
+ const F=1.3,S=50,X0=36,W=X0*2+A*S,AY=118;
+ const x=n=>X0+n*S;
+ const tStart=Math.round(900*F),step=Math.round(900*F),dur=Math.round(550*F);
+ let g='';
+ for(let n=0;n<=A;n++){
+  g+=`<line class="tick" x1="${x(n)}" y1="${AY-9}" x2="${x(n)}" y2="${AY+9}"/><text class="lbl${n===A?' st':''}" x="${x(n)}" y="${AY+38}">${n.toString(base)}</text>`;
+ }
+ let arcs='';
+ for(let k=0;k<Cc;k++){
+  const x1=x(A-k),x2=x(A-k-1),mid=(x1+x2)/2,t0=tStart+Math.round(500*F)+k*step;
+  arcs+=`<path class="arc" pathLength="1" d="M ${x1-3} ${AY-12} Q ${mid} ${AY-12-58} ${x2+5} ${AY-14}" style="animation-delay:${t0}ms;animation-duration:${dur}ms"/>`;
+  arcs+=`<polygon class="head" points="${x2+5},${AY-8} ${x2+17},${AY-24} ${x2-3},${AY-23}" style="animation-delay:${t0+dur-80}ms"/>`;
+  arcs+=`<text class="cnt" x="${mid}" y="${AY-12-58/2-14}" style="animation-delay:${t0+Math.round(dur*.6)}ms">${k+1}</text>`;
+ }
+ const tEnd=tStart+Math.round(500*F)+Cc*step+Math.round(250*F);
+ const startDot=`<circle class="startdot" cx="${x(A)}" cy="${AY}" r="9" style="animation-delay:${tStart}ms"/>`;
+ const ring=`<circle class="ring" cx="${x(R)}" cy="${AY+31}" r="27" style="animation-delay:${tEnd}ms"/><text class="endlbl" x="${x(R)}" y="${AY+88}" style="animation-delay:${tEnd+Math.round(250*F)}ms">${s}</text>`;
+ $('model').innerHTML=`<div class="nlwrap"><svg class="nl" viewBox="0 0 ${W} 215" style="width:${Math.round(W*1.3)}px;max-width:100%;min-width:${Math.round(W*0.7)}px" role="img" aria-label="Number line from ${A.toString(base)} hopping ${Cc} to the left, landing on ${s}"><g class="axisg" style="animation-delay:0ms"><line class="axis" x1="${X0-20}" y1="${AY}" x2="${W-X0+20}" y2="${AY}"/>${g}</g>${startDot}${arcs}${ring}</svg></div>`;
+ $('model').hidden=false;
+ $('model').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+$('check').onclick=check;$('show').onclick=show;$('next').onclick=newProblem;
+$('ans').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();check();}};
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&mode!=='ask'){e.preventDefault();newProblem();}});
+newProblem();
+})();
+</script></body></html>
